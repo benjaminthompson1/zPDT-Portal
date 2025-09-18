@@ -51,6 +51,10 @@
     .status.up{background:#24a148}
     .status.down{background:#da1e28}
     footer{margin-top:28px;border-top:1px solid #e0e0e0;padding-top:12px;font-size:12px;color:#6f6f6f;text-align:center}
+    
+    /* GitLab styling */
+    .gitlab-card { border-left: 4px solid #fc6d26; }
+    .github-card { border-left: 4px solid #333; }
   </style>
 </head>
 <body>
@@ -63,6 +67,7 @@
       <a href="#system">System Management</a>
       <a href="#docs">Documentation & Reference</a>
       <a href="#tools">Tools</a>
+      <a href="#repos">Repositories</a>
     </nav>
   </div>
 
@@ -78,6 +83,7 @@
       <a class="btn btn--primary" href="#system">Go to System Management</a>
       <a class="btn btn--muted" href="#docs">Go to Documentation</a>
       <a class="btn btn--muted" href="#tools">Go to Tools</a>
+      <a class="btn btn--muted" href="#repos">Go to Repositories</a>
     </div>
 
     <!-- SYSTEM MANAGEMENT -->
@@ -136,6 +142,11 @@
           <p>Access IBM Support for case management, downloads, and technical assistance.</p>
           <a href="https://www.ibm.com/mysupport/s/?language=en_US" target="_blank" rel="noopener noreferrer">Open IBM Support</a>
         </div>
+        <div class="card">
+          <h4><i class="fab fa-gitlab"></i> GitLab Documentation</h4>
+          <p>Official GitLab documentation for installation, configuration, and usage.</p>
+          <a href="https://docs.gitlab.com/" target="_blank" rel="noopener noreferrer">Open GitLab Docs</a>
+        </div>
       </div>
       <div class="back-top"><a href="#">Back to top ↑</a></div>
     </section>
@@ -149,6 +160,24 @@
           <h4><i class="fas fa-desktop"></i> Apache Guacamole</h4>
           <p>Remote desktop gateway (browser-based) for accessing systems like SSH, RDP, VNC, etc.</p>
           <a href="https://guac.mainframehome.net/#/" target="_blank" rel="noopener noreferrer">Open Guacamole</a>
+        </div>
+      </div>
+      <div class="back-top"><a href="#">Back to top ↑</a></div>
+    </section>
+
+    <!-- REPOSITORIES -->
+    <section id="repos">
+      <h3>Repositories</h3>
+      <div class="grid">
+        <div class="card gitlab-card">
+          <h4><i class="fab fa-gitlab"></i> Local GitLab Instance</h4>
+          <p>Access your local GitLab instance for mainframe development projects.</p>
+          <a href="http://192.168.1.165.nip.io/" target="_blank" rel="noopener noreferrer">Open Local GitLab</a>
+        </div>
+        <div class="card github-card">
+          <h4><i class="fab fa-github"></i> GitHub Profile</h4>
+          <p>View Benjamin Thompson's public repositories and contributions.</p>
+          <a href="https://github.com/benjaminthompson1" target="_blank" rel="noopener noreferrer">Open GitHub Profile</a>
         </div>
       </div>
       <div class="back-top"><a href="#">Back to top ↑</a></div>
