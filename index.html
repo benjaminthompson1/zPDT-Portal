@@ -50,11 +50,43 @@
     .status{position:absolute;top:10px;right:10px;height:12px;width:12px;border-radius:50%;background:#bbb}
     .status.up{background:#24a148}
     .status.down{background:#da1e28}
+    .status.loading{background:#0f62fe;animation:pulse 1.5s infinite}
+    .status.unknown{background:#f1c21b}
     footer{margin-top:28px;border-top:1px solid #e0e0e0;padding-top:12px;font-size:12px;color:#6f6f6f;text-align:center}
     
     /* GitLab styling */
     .gitlab-card { border-left: 4px solid #fc6d26; }
     .github-card { border-left: 4px solid #333; }
+    
+    /* Pulse animation for loading */
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+    
+    /* Error notification styling */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 4px;
+      color: white;
+      font-weight: 600;
+      z-index: 1001;
+      transform: translateX(120%);
+      transition: transform 0.3s ease-in-out;
+    }
+    .notification.show {
+      transform: translateX(0);
+    }
+    .notification.error {
+      background: #da1e28;
+    }
+    .notification.success {
+      background: #24a148;
+    }
   </style>
 </head>
 <body>
@@ -91,22 +123,34 @@
       <h3>System Management</h3>
       <div class="grid">
         <div class="card">
-          <span class="status" id="zosmf-status" title="Status unknown"></span>
+          <span class="status loading" id="zosmf-status" title="Checking status..."></span>
           <h4><i class="fas fa-cogs"></i> z/OSMF</h4>
           <p>Web-based management for z/OS. Use this for system tasks, workflows, and REST APIs.</p>
           <a href="https://s0w1.dal-ebis.ihost.com:10443/zosmf/LogOnPanel.jsp" target="_blank" rel="noopener noreferrer">Open z/OSMF</a>
         </div>
         <div class="card">
-          <span class="status" id="zowe-status" title="Status unknown"></span>
+          <span class="status loading" id="zowe-status" title="Checking status..."></span>
           <h4><i class="fas fa-plug"></i> Zowe</h4>
           <p>Web UI and API gateway for mainframe tools. Helpful for file browsing, CLI, and extensions.</p>
           <a href="https://s0w1.dal-ebis.ihost.com:7554/zlux/ui/v1/ZLUX/plugins/org.zowe.zlux.bootstrap/web/" target="_blank" rel="noopener noreferrer">Open Zowe</a>
         </div>
         <div class="card">
-          <span class="status" id="qwt-status" title="Status unknown"></span>
+          <span class="status loading" id="qwt-status" title="Checking status..."></span>
           <h4><i class="fas fa-chart-line"></i> Db2 Query Workload Tuner</h4>
           <p>Tune and analyze Db2 workloads through the interactive Swagger UI.</p>
           <a href="https://s0w1.dal-ebis.ihost.com:11002/tuningservice/v1/swagger-ui/index.html" target="_blank" rel="noopener noreferrer">Open QWT Swagger UI</a>
+        </div>
+        <div class="card">
+          <span class="status loading" id="debugger-status" title="Checking status..."></span>
+          <h4><i class="fas fa-bug"></i> z/OS Debugger</h4>
+          <p>Interactive debugging tool for COBOL, PL/I, Assembler, and other mainframe languages.</p>
+          <a href="http://192.168.1.171:8143/profile-management/" target="_blank" rel="noopener noreferrer">Open z/OS Debugger</a>
+        </div>
+        <div class="card">
+          <span class="status loading" id="mfa-status" title="Checking status..."></span>
+          <h4><i class="fas fa-shield-alt"></i> IBM MFA TOTP</h4>
+          <p>Time-based one-time password factor for IBM Multi-Factor Authentication.</p>
+          <a href="https://s0w1.dal-ebis.ihost.com:6793/AZFTOTP1/genericStart" target="_blank" rel="noopener noreferrer">Open IBM MFA TOTP</a>
         </div>
       </div>
       <div class="back-top"><a href="#">Back to top ↑</a></div>
@@ -156,7 +200,7 @@
       <h3>Tools</h3>
       <div class="grid">
         <div class="card">
-          <span class="status" id="guac-status" title="Status unknown"></span>
+          <span class="status loading" id="guac-status" title="Checking status..."></span>
           <h4><i class="fas fa-desktop"></i> Apache Guacamole</h4>
           <p>Remote desktop gateway (browser-based) for accessing systems like SSH, RDP, VNC, etc.</p>
           <a href="https://guac.mainframehome.net/#/" target="_blank" rel="noopener noreferrer">Open Guacamole</a>
@@ -189,7 +233,29 @@
     </footer>
   </div>
 
+  <!-- Notification container -->
+  <div id="notification-container"></div>
+
   <script>
+    // Global error handling
+    window.addEventListener('error', function(e) {
+      console.error('Global error:', e.error);
+      // Don't show notification for status check errors to avoid spam
+      if (!e.filename || !e.filename.includes('status')) {
+        showNotification('An unexpected error occurred. Please try again.', 'error');
+      }
+    });
+
+    // Promise rejection handling
+    window.addEventListener('unhandledrejection', function(e) {
+      console.error('Unhandled promise rejection:', e.reason);
+      // Don't show notification for status check errors to avoid spam
+      if (!e.reason.message || !e.reason.message.includes('status')) {
+        showNotification('A background operation failed. Please try again.', 'error');
+      }
+      e.preventDefault();
+    });
+
     const hamburger=document.getElementById("hamburger");
     const nav=document.getElementById("nav");
     hamburger.addEventListener("click",()=>{nav.classList.toggle("show")});
@@ -209,21 +275,108 @@
       });
     });
 
-    async function checkService(url, id) {
+    // Improved service status checking - more lenient approach
+    async function checkService(url, id, timeout = 8000) {
+      const statusElement = document.getElementById(id);
+      statusElement.classList.add('loading');
+      statusElement.classList.remove('up', 'down', 'unknown');
+      statusElement.title = "Checking status...";
+
       try {
-        await fetch(url, { method: "HEAD", mode: "no-cors" });
-        document.getElementById(id).classList.add("up");
-        document.getElementById(id).title = "Up";
+        // First try a simple HEAD request (faster)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        const response = await fetch(url, { 
+          method: "HEAD",
+          mode: "no-cors",
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        // With no-cors mode, we can't read the response details
+        // But if the request doesn't throw an error, the service is likely reachable
+        statusElement.classList.remove('loading');
+        statusElement.classList.add("up");
+        statusElement.title = "Service appears to be reachable";
+        
       } catch (err) {
-        document.getElementById(id).classList.add("down");
-        document.getElementById(id).title = "Down";
+        // If HEAD fails, try GET with no-cors (still limited info due to CORS)
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+          const response = await fetch(url, { 
+            method: "GET",
+            mode: "no-cors",
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          
+          statusElement.classList.remove('loading');
+          statusElement.classList.add("up");
+          statusElement.title = "Service appears to be reachable";
+          
+        } catch (err2) {
+          statusElement.classList.remove('loading');
+          
+          if (err2.name === 'AbortError' || err.name === 'AbortError') {
+            statusElement.classList.add("unknown");
+            statusElement.title = "Check timed out - service may be slow or unreachable";
+          } else {
+            statusElement.classList.add("unknown");
+            statusElement.title = "Unable to determine status - service may require authentication";
+          }
+        }
       }
     }
 
-    checkService("https://s0w1.dal-ebis.ihost.com:10443/zosmf/LogOnPanel.jsp","zosmf-status");
-    checkService("https://s0w1.dal-ebis.ihost.com:7554/zlux/ui/v1/ZLUX/plugins/org.zowe.zlux.bootstrap/web/","zowe-status");
-    checkService("https://s0w1.dal-ebis.ihost.com:11002/tuningservice/v1/swagger-ui/index.html","qwt-status");
-    checkService("https://guac.mainframehome.net/#/","guac-status");
+    // Notification system
+    function showNotification(message, type = 'success') {
+      const container = document.getElementById('notification-container');
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      
+      container.appendChild(notification);
+      
+      // Trigger reflow to enable transition
+      notification.offsetHeight;
+      notification.classList.add('show');
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    // Check all services with a slight delay between each to avoid overwhelming the browser
+    function checkAllServices() {
+      const services = [
+        {url: "https://s0w1.dal-ebis.ihost.com:10443/zosmf/LogOnPanel.jsp", id: "zosmf-status"},
+        {url: "https://s0w1.dal-ebis.ihost.com:7554/zlux/ui/v1/ZLUX/plugins/org.zowe.zlux.bootstrap/web/", id: "zowe-status"},
+        {url: "https://s0w1.dal-ebis.ihost.com:11002/tuningservice/v1/swagger-ui/index.html", id: "qwt-status"},
+        {url: "http://192.168.1.171:8143/profile-management/", id: "debugger-status"},
+        {url: "https://s0w1.dal-ebis.ihost.com:6793/AZFTOTP1/genericStart", id: "mfa-status"},
+        {url: "https://guac.mainframehome.net/#/", id: "guac-status"}
+      ];
+
+      // Check services with staggered timing
+      services.forEach((service, index) => {
+        setTimeout(() => {
+          checkService(service.url, service.id);
+        }, index * 500);
+      });
+    }
+
+    // Run status checks
+    checkAllServices();
 
     document.getElementById("last-updated").textContent="Last updated: "+new Date().toLocaleString();
   </script>
