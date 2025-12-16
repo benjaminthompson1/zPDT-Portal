@@ -44,7 +44,7 @@
     .card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.08)}
     .card h4{margin-bottom:6px;font-size:16px;color:#0f62fe}
     .card p{margin:0;font-size:14px;color:#525252}
-    .card a{display:inline-block;margin-top:10px;font-weight:600;text-decoration:none;color:#0f62fe;font-size:14px}
+    .card a{display:inline-block;margin-top:10px;font-weight:600;text-decoration:none;color:#0f62fe;font-size:14px;word-break:break-all}
     .card a:hover{text-decoration:underline}
     .card i{margin-right:6px}
     .status{position:absolute;top:10px;right:10px;height:12px;width:12px;border-radius:50%;background:#bbb}
@@ -57,7 +57,10 @@
     /* GitLab styling */
     .gitlab-card { border-left: 4px solid #fc6d26; }
     .github-card { border-left: 4px solid #333; }
-    
+
+    /* API card styling */
+    .api-card { border-left: 4px solid #0f62fe; }
+
     /* Pulse animation for loading */
     @keyframes pulse {
       0% { opacity: 1; }
@@ -99,6 +102,7 @@
       <a href="#system">System Management</a>
       <a href="#docs">Documentation & Reference</a>
       <a href="#tools">Tools</a>
+      <a href="#apis">APIs</a>
       <a href="#repos">Repositories</a>
     </nav>
   </div>
@@ -107,7 +111,7 @@
     <header>
       <div class="brand">
         <h2>zPDT — Personal Mainframe Landing</h2>
-        <p class="lead">Your single place to reach z/OSMF, Zowe, QWT, and documentation for your zPDT environment.</p>
+        <p class="lead">Your single place to reach z/OSMF, Zowe, QWT, APIs, and documentation for your zPDT environment.</p>
       </div>
     </header>
 
@@ -115,6 +119,7 @@
       <a class="btn btn--primary" href="#system">Go to System Management</a>
       <a class="btn btn--muted" href="#docs">Go to Documentation</a>
       <a class="btn btn--muted" href="#tools">Go to Tools</a>
+      <a class="btn btn--muted" href="#apis">Go to APIs</a>
       <a class="btn btn--muted" href="#repos">Go to Repositories</a>
     </div>
 
@@ -204,6 +209,38 @@
           <h4><i class="fas fa-desktop"></i> Apache Guacamole</h4>
           <p>Remote desktop gateway (browser-based) for accessing systems like SSH, RDP, VNC, etc.</p>
           <a href="https://guac.mainframehome.net/#/" target="_blank" rel="noopener noreferrer">Open Guacamole</a>
+        </div>
+      </div>
+      <div class="back-top"><a href="#">Back to top ↑</a></div>
+    </section>
+
+    <!-- APIs DEMONSTRATION -->
+    <section id="apis">
+      <h3>APIs (z/OS Connect EE)</h3>
+      <div class="grid">
+        <div class="card api-card">
+          <span class="status loading" id="catalog-list-status" title="Checking status..."></span>
+          <h4><i class="fas fa-boxes"></i> Catalog Items (List)</h4>
+          <p>Retrieves a list of catalog items using the CICS Catalog Manager sample application.</p>
+          <a href="https://zcee3.mainframehome.net/items?startItemID=10" target="_blank" rel="noopener noreferrer">GET /items?startItemID=10</a>
+        </div>
+        <div class="card api-card">
+          <span class="status loading" id="catalog-single-status" title="Checking status..."></span>
+          <h4><i class="fas fa-box"></i> Catalog Item (Single)</h4>
+          <p>Retrieves a single catalog item by ID from the CICS Catalog Manager sample application.</p>
+          <a href="https://zcee3.mainframehome.net/items/10" target="_blank" rel="noopener noreferrer">GET /items/10</a>
+        </div>
+        <div class="card api-card">
+          <span class="status loading" id="employee-single-status" title="Checking status..."></span>
+          <h4><i class="fas fa-user"></i> Employee (Single)</h4>
+          <p>Db2 native REST service returning a single employee row from the EMP sample table.</p>
+          <a href="https://zcee3.mainframehome.net/employees/000010" target="_blank" rel="noopener noreferrer">GET /employees/000010</a>
+        </div>
+        <div class="card api-card">
+          <span class="status loading" id="employee-query-status" title="Checking status..."></span>
+          <h4><i class="fas fa-users"></i> Employees by Dept & Job</h4>
+          <p>Db2 native REST service querying employees filtered by department and job code.</p>
+          <a href="https://zcee3.mainframehome.net/employees?department=A00&job=PRES%20%20%20%20" target="_blank" rel="noopener noreferrer">GET /employees?department=A00&amp;job=PRES%20%20%20%20</a>
         </div>
       </div>
       <div class="back-top"><a href="#">Back to top ↑</a></div>
@@ -364,7 +401,11 @@
         {url: "https://s0w1.dal-ebis.ihost.com:11002/tuningservice/v1/swagger-ui/index.html", id: "qwt-status"},
         {url: "http://192.168.1.171:8143/profile-management/", id: "debugger-status"},
         {url: "https://s0w1.dal-ebis.ihost.com:6793/AZFTOTP1/genericStart", id: "mfa-status"},
-        {url: "https://guac.mainframehome.net/#/", id: "guac-status"}
+        {url: "https://guac.mainframehome.net/#/", id: "guac-status"},
+        {url: "https://zcee3.mainframehome.net/items?startItemID=10", id: "catalog-list-status"},
+        {url: "https://zcee3.mainframehome.net/items/10", id: "catalog-single-status"},
+        {url: "https://zcee3.mainframehome.net/employees/000010", id: "employee-single-status"},
+        {url: "https://zcee3.mainframehome.net/employees?department=A00&job=PRES%20%20%20%20", id: "employee-query-status"}
       ];
 
       // Check services with staggered timing
