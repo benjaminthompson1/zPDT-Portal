@@ -10,19 +10,25 @@ Tech stack: pure HTML5, CSS3, and vanilla JavaScript (ES2017). No build framewor
 
 ## Packaging & Deployment
 
-There is no build tool. Packaging is done manually:
+There is no compile/transpile step — packaging just zips the static files into a WAR.
 
 ```powershell
-# Windows — create WAR from repo root
+# Preferred — build.ps1 verifies required files exist, builds zADE-Portal.war,
+# writes a timestamped backup (zADE-Portal-yyyyMMdd-HHmmss.war), and prints FTP steps.
+.\build.ps1
+```
+
+```powershell
+# Manual equivalent (Windows) from repo root
 Compress-Archive -Path index.html, assets\*, WEB-INF\* -DestinationPath zADE-Portal.war -Force
 ```
 
 ```bash
-# Unix equivalent
+# Manual equivalent (Unix)
 zip -r zADE-Portal.war index.html assets/ WEB-INF/
 ```
 
-Deployment: transfer `zADE-Portal.war` to the Liberty server's `dropins/` directory **in binary mode** (FTP binary). Liberty auto-deploys. The app is served at `https://zade.mainframehome.net/zADE-Portal/`.
+Deployment: transfer `zADE-Portal.war` to the Liberty server's `dropins/` directory (`/global/wlpCfg/servers/wlps01a/dropins`) **in binary mode** (FTP binary). Liberty auto-deploys. The app is served at `https://zade.mainframehome.net/zADE-Portal/`.
 
 `WEB-INF/web.xml` is a minimal Jakarta EE 5.0 servlet descriptor — Liberty needs it to recognize the WAR as a web application.
 
@@ -34,15 +40,16 @@ All application code lives in three files:
 - [assets/css/main.css](assets/css/main.css) — all styles; built on IBM Carbon Design tokens defined as CSS custom properties at `:root`; no external CSS framework
 - [assets/js/main.js](assets/js/main.js) — all interactivity
 
-### JavaScript features in `main.js`
+`main.js` is a single IIFE (`'use strict'`, no globals). The `SERVICE_LIST` array (8 endpoints) drives all status polling — add/remove a monitored service by editing that array *and* adding a matching `status-dot` element with the same `id` in `index.html`.
 
-- **Service status polling** — `checkService()` fetches 8 endpoints on page load (HEAD with GET fallback, 8 s timeout, `no-cors` mode); updates coloured status dots
-- **Scroll-spy** — `IntersectionObserver` highlights the active nav link and sets `aria-current`
-- **Back-to-top button** — appears after scrolling 400 px
-- **Hamburger menu** — responsive nav collapse/expand (breakpoint: 768 px)
-- **Copy-to-clipboard** — copies API endpoint URLs with icon animation and toast feedback
-- **Modal management** — Help and Lab Info dialogs; Escape key and backdrop-click dismiss
-- **Toast notifications** — ephemeral messages for clipboard and error feedback
+- **Service status polling** — `checkService()` probes each endpoint HEAD-first with a GET fallback (some servers reject HEAD), 8 s timeout via `AbortController`, `no-cors` mode. `checkAllServices()` runs them **sequentially** (not parallel) to avoid hammering the network, updating a "Checking N/8…" progress label. Manual re-poll via the Refresh button or **Alt+R**.
+- **Status caching** — results are persisted to `localStorage` for 5 minutes (`loadCachedStatus`/`saveCachedStatus`). On load, cached dots render instantly and a background re-check fires after 2 s; with no valid cache it polls immediately.
+- **Scroll handling** — a single `scroll` listener throttled with `requestAnimationFrame` does both scroll-spy (sets `aria-current` on the active nav link via section `offsetTop`) and back-to-top visibility (after 400 px). Note: this is a manual listener, **not** `IntersectionObserver`.
+- **Hamburger menu** — responsive nav collapse/expand (breakpoint: 768 px); auto-closes on nav-link click and on outside click
+- **Copy-to-clipboard** — copies API endpoint URLs (`data-copy` attribute) with icon swap animation; toast on failure
+- **Modal management** — shared `initModal()` wires Help and Lab Info dialogs; toggles the `hidden` attribute + `visible` class for CSS transitions; Escape key and backdrop-click dismiss
+- **Keyboard shortcuts** — Alt+H (Help), Alt+I (Lab Info), Alt+R (Refresh), Escape (close dialog)
+- **Toast notifications** — `showNotification()`; also surfaced by global `error`/`unhandledrejection` handlers, which suppress noise from the status fetches
 
 ### CSS conventions
 
@@ -56,3 +63,9 @@ All application code lives in three files:
 - **No inline scripts or styles** — keeps the page CSP-friendly
 - **Air-gap compatibility** — Font Awesome and IBM Plex fonts can be swapped to self-hosted copies if the z/OS environment has no internet access (CDN URLs are in `index.html` `<head>`)
 - **Binary FTP transfer** — WAR must be transferred in binary mode; ASCII mode corrupts the ZIP structure Liberty depends on
+
+## Companion docs
+
+- [SECURITY.md](SECURITY.md) — Liberty CSP/security-header config, SRI hash regeneration, optional auth, air-gap self-hosting. Consult before changing CDN `<link>` tags or the security posture.
+- [README.md](README.md) — full deploy walkthrough (FTP/SFTP/scp), IBM Carbon token reference table, post-deploy verification checklist.
+- [AGENTS.md](AGENTS.md) — condensed agent-facing notes; keep it in sync with this file when constraints change.
