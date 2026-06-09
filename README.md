@@ -48,10 +48,15 @@ When built as a WAR, `index.html` and the `assets/` tree sit at the WAR root and
 | **Tools** | Apache Guacamole (remote desktop gateway) and MinIO Console (S3-compatible object storage). |
 | **APIs** | z/OS Connect EE endpoint tiles with live status indicators, monospaced endpoint display, and copy-to-clipboard buttons. |
 | **Repositories** | Links to local GitLab instance and the GitHub profile. |
-| **Service Status** | Live indicators (`up`, `loading`, `unknown`, `down`) polled on page load with a manual Refresh button. Hover a dot for a tooltip showing the current state. |
-| **Scroll-spy Navigation** | Fixed top nav highlights the active section as you scroll. |
+| **Service Status** | Live indicators (`up`, `loading`, `unknown`, `down`) with progress tracking and 5-minute caching. Manual Refresh button available. |
+| **Scroll-spy Navigation** | Fixed top nav highlights the active section as you scroll (optimized with requestAnimationFrame). |
 | **Back to Top** | Single floating button appears after scrolling 400 px — no per-section repeated links. |
-| **Responsive** | Collapsible hamburger menu on viewports ≤ 768 px. |
+| **Responsive** | Collapsible hamburger menu on viewports ≤ 768 px with auto-close on link selection. |
+| **Keyboard Shortcuts** | Alt+H (Help), Alt+I (Lab Info), Alt+R (Refresh Status), Escape (Close dialogs). |
+| **Dark Mode** | Automatic dark mode support based on system preferences. |
+| **Print Friendly** | Optimized print stylesheet for lab reference documentation. |
+| **Performance** | Scroll throttling, status caching, and optimized event handlers for smooth operation. |
+| **Security** | SRI hashes for CDN resources, CSP-friendly architecture, comprehensive security headers support. |
 
 ---
 
@@ -97,14 +102,31 @@ When built as a WAR, `index.html` and the `assets/` tree sit at the WAR root and
 
 ### Step 1 — Build the WAR on your workstation
 
+**Option A: Using the automated build script (recommended):**
+
+```powershell
+# Run the build script
+.\build.ps1
+```
+
+The script will:
+- Verify all required files exist
+- Create `zADE-Portal.war`
+- Create a versioned backup (e.g., `zADE-Portal-20260608-223000.war`)
+- Display deployment instructions
+
+**Option B: Manual build:**
+
 From the repository root (the directory containing `index.html`):
 
-```bash
-# Confirm the layout before zipping
-find . -not -path './.git/*' -not -name '.gitignore' | sort
-
-# Create the WAR (a WAR is a ZIP with a WEB-INF directory)
+```powershell
+# Windows PowerShell
 Compress-Archive -Path index.html, assets\*, WEB-INF\* -DestinationPath zADE-Portal.war -Force
+```
+
+```bash
+# Unix/Linux
+zip -r zADE-Portal.war index.html assets/ WEB-INF/
 ```
 
 Expected ZIP contents:
@@ -167,23 +189,40 @@ https://zade.mainframehome.net/zADE-Portal/
 
 Open the URL in a browser. Confirm:
 
-- The IBM shell header and tile grid render correctly.
-- The breadcrumb shows `IBM / zADE Environment / Portal`.
-- Status dots cycle through `loading` → `up` or `down` for each tile; hovering a dot shows a tooltip.
-- Copy buttons appear on each API endpoint tile and write the URL to the clipboard.
-- The floating "back to top" button appears after scrolling.
+- The IBM shell header and tile grid render correctly
+- Status dots show progress during checks (e.g., "Checking 3/8...")
+- Status is cached and loads instantly on subsequent visits (within 5 minutes)
+- Copy buttons appear on each API endpoint tile and write the URL to the clipboard
+- The floating "back to top" button appears after scrolling
+- Keyboard shortcuts work (Alt+H for Help, Alt+I for Lab Info, Alt+R for Refresh)
+- Dark mode activates if your system is set to dark theme
+- Mobile hamburger menu closes when clicking a navigation link
 
 ---
 
-## Optional: Configuring a Content Security Policy
+## Security Configuration
 
-Because all scripts and styles are now in external files (no inline `<script>` or `style` attributes), Liberty can enforce a strict CSP. Add a filter or response header in `WEB-INF/web.xml`:
+The portal includes comprehensive security features. See [SECURITY.md](SECURITY.md) for detailed configuration instructions including:
+
+- Content Security Policy (CSP) headers
+- Subresource Integrity (SRI) for CDN resources
+- Additional security headers (X-Frame-Options, X-Content-Type-Options, etc.)
+- HTTPS/TLS configuration
+- Air-gapped deployment options
+
+### Quick CSP Setup
+
+Add to your Liberty `server.xml`:
 
 ```xml
-<filter>
-  <filter-name>CSPFilter</filter-name>
-  <filter-class>com.ibm.placeholder.CSPFilter</filter-class>
-</filter>
+<httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="9443">
+  <headers>
+    <add>Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' https://www.ibm.com data:; connect-src 'self' https: http:;</add>
+    <add>X-Content-Type-Options: nosniff</add>
+    <add>X-Frame-Options: SAMEORIGIN</add>
+    <add>Referrer-Policy: strict-origin-when-cross-origin</add>
+  </headers>
+</httpEndpoint>
 ```
 
 Or, simpler — add the header directly in `server.xml` using Liberty's `httpEndpoint` response headers:

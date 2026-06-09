@@ -40,6 +40,45 @@
   --spacing-09:    48px;
 }
 
+/* ── Dark Mode Support ── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ui-background: #161616;
+    --ui-01:         #262626;
+    --ui-02:         #393939;
+    --border:        #393939;
+    --text-primary:  #f4f4f4;
+    --text-secondary:#c6c6c6;
+    --text-helper:   #8d8d8d;
+    --hover-ui:      #4c4c4c;
+  }
+  
+  .shell-header {
+    background: #000000;
+    border-bottom-color: #262626;
+  }
+  
+  .shell-header-name {
+    border-right-color: #262626;
+  }
+  
+  .shell-header-global button {
+    border-left-color: #262626;
+  }
+  
+  .hamburger-btn {
+    border-right-color: #262626;
+  }
+  
+  .tile-endpoint {
+    background: #262626;
+  }
+  
+  .info-table code {
+    background: #262626;
+  }
+}
+
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -746,3 +785,53 @@ footer .ibm-mark {
 .notification.show { transform: translateX(0); }
 .notification.error   { background: var(--ibm-red-60); }
 .notification.success { background: var(--ibm-green-50); }
+
+/* ── Print Stylesheet ── */
+@media print {
+  .shell-header,
+  .hamburger-btn,
+  #back-to-top,
+  .refresh-btn,
+  .modal-overlay,
+  .status-dot,
+  #notification-container {
+    display: none !important;
+  }
+  
+  body {
+    padding-top: 0;
+    font-size: 12pt;
+  }
+  
+  .tile {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .section {
+    page-break-after: avoid;
+  }
+  
+  .section-header {
+    page-break-after: avoid;
+  }
+  
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: var(--text-helper);
+  }
+  
+  .page-hero {
+    border-bottom: 2px solid #000;
+  }
+  
+  .card-grid {
+    display: block;
+  }
+  
+  .tile {
+    margin-bottom: 1em;
+    border: 1px solid #000;
+  }
+}

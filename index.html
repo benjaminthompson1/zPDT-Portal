@@ -4,24 +4,38 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>zADE Portal — Mainframe Home</title>
+  
+  <!-- SEO and Social Sharing -->
+  <meta name="description" content="zADE Portal - Central access point for IBM z/OS 3.2 homelab resources including z/OSMF, Zowe, APIs, and documentation." />
+  <meta name="author" content="Benjamin Thompson" />
+  <meta name="keywords" content="IBM z/OS, mainframe, ADCD, z/OSMF, Zowe, homelab, z/OS Connect" />
+  
+  <!-- Open Graph for social sharing -->
+  <meta property="og:title" content="zADE Portal — Mainframe Home" />
+  <meta property="og:description" content="Central access point for IBM z/OS 3.2 homelab resources" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://zade.mainframehome.net/zADE-Portal/" />
 
-  <!--
-    Favicon: replace with a locally hosted file (e.g. assets/img/favicon.ico)
-    once deployed, to avoid a dependency on ibm.com being reachable.
-  -->
-  <link rel="icon" href="https://www.ibm.com/favicon.ico" type="image/x-icon" />
+  <!-- Favicon: SVG emoji fallback, no external dependency -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>" />
 
   <!--
     External CDN dependencies — Font Awesome icons and IBM Plex fonts.
+    SRI hashes ensure integrity and prevent CDN compromise attacks.
     In an air-gapped z/OS homelab these will fail silently (icons won't render,
     fallback fonts will be used). To self-host:
       • Font Awesome: download to assets/fonts/fontawesome/ and update this href.
       • IBM Plex:     download to assets/fonts/ibm-plex/ and use @font-face rules in main.css.
   -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap"
+        rel="stylesheet" />
 
   <!-- Application stylesheet — served as a static resource from the WAR root -->
   <link rel="stylesheet" href="assets/css/main.css" />
@@ -530,11 +544,23 @@
         </section>
 
         <section class="help-section">
+          <h3>Keyboard Shortcuts</h3>
+          <ul>
+            <li><strong>Alt+H</strong> — Open this Help dialog</li>
+            <li><strong>Alt+I</strong> — Open Lab Info dialog</li>
+            <li><strong>Alt+R</strong> — Refresh service status</li>
+            <li><strong>Escape</strong> — Close any open dialog</li>
+          </ul>
+        </section>
+
+        <section class="help-section">
           <h3>Tips</h3>
           <ul>
             <li>Click any API endpoint URL to open it in a new tab, or use the copy button to grab the URL.</li>
             <li>All service links open in a new tab and do not leave the portal.</li>
             <li>The floating <strong>&#8593;</strong> button appears after scrolling down — click it to return to the top.</li>
+            <li>Service status is cached for 5 minutes for faster page loads.</li>
+            <li>The portal supports dark mode based on your system preferences.</li>
           </ul>
         </section>
 
